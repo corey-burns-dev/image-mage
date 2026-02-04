@@ -1,15 +1,7 @@
 import type { NextRequest } from "next/server";
 import sharp from "sharp";
 
-type OutputFormat =
-  | "auto"
-  | "jpeg"
-  | "jpg"
-  | "png"
-  | "webp"
-  | "avif"
-  | "tiff"
-  | "gif";
+type OutputFormat = "auto" | "jpeg" | "jpg" | "png" | "webp" | "avif" | "tiff" | "gif";
 
 type Preset = "tiny" | "small" | "balanced" | "crisp";
 
@@ -156,12 +148,7 @@ async function encodeToTargetSize(
 
   for (let i = 0; i < 8; i += 1) {
     const quality = Math.round((low + high) / 2);
-    const encoded = await encodeWithQuality(
-      buffer,
-      format,
-      quality,
-      options
-    ).toBuffer();
+    const encoded = await encodeWithQuality(buffer, format, quality, options).toBuffer();
     const diff = Math.abs(encoded.length - targetBytes);
     if (diff < bestDiff) {
       bestDiff = diff;
@@ -188,20 +175,13 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "No files provided." }, { status: 400 });
     }
 
-    const requestedFormat = (formData.get("format") ||
-      "auto") as OutputFormat;
+    const requestedFormat = (formData.get("format") || "auto") as OutputFormat;
     const preset = (formData.get("preset") || "balanced") as Preset;
-    const quality = safeNumber(
-      formData.get("quality"),
-      presetQuality[preset] ?? 75
-    );
+    const quality = safeNumber(formData.get("quality"), presetQuality[preset] ?? 75);
     const targetSizeKB = safeNumber(formData.get("targetSizeKB"), 0);
     const resizeWidth = safeNumber(formData.get("width"), 0);
     const resizeHeight = safeNumber(formData.get("height"), 0);
-    const fit = (formData.get("fit") || "inside") as
-      | "inside"
-      | "cover"
-      | "contain";
+    const fit = (formData.get("fit") || "inside") as "inside" | "cover" | "contain";
     const keepMetadata = toBoolean(formData.get("keepMetadata"));
     const flatten = toBoolean(formData.get("flatten"));
     const background = (formData.get("background") || "#ffffff") as string;
@@ -214,8 +194,7 @@ export async function POST(request: NextRequest) {
         const inputExt = getExtension(file.name);
         const outputFormat = normalizeFormat(requestedFormat, inputExt);
         const hasAlphaFormats = ["png", "webp", "avif", "gif"];
-        const shouldFlatten =
-          flatten && !hasAlphaFormats.includes(outputFormat);
+        const shouldFlatten = flatten && !hasAlphaFormats.includes(outputFormat);
 
         const encoderOptions = {
           width: resizeWidth || undefined,
@@ -261,8 +240,7 @@ export async function POST(request: NextRequest) {
     console.error("estimate failed", error);
     return Response.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to estimate images.",
+        error: error instanceof Error ? error.message : "Failed to estimate images.",
       },
       { status: 500 }
     );

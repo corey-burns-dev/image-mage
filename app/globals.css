@@ -48,7 +48,11 @@ body {
   background-color: var(--bg);
   background-image:
     radial-gradient(1200px 600px at 80% -10%, var(--glow) 0%, transparent 60%),
-    radial-gradient(900px 500px at 10% -20%, rgba(231, 165, 58, 0.18) 0%, transparent 55%),
+    radial-gradient(
+      900px 500px at 10% -20%,
+      rgba(231, 165, 58, 0.18) 0%,
+      transparent 55%
+    ),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
@@ -107,7 +111,9 @@ option {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   white-space: nowrap;
   z-index: 20;
 }

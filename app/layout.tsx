@@ -3,8 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "OptiPic — Image Conversion & Compression",
-  description:
-    "A fast, beautiful spa for converting and compressing images in seconds.",
+  description: "A fast, beautiful spa for converting and compressing images in seconds.",
 };
 
 export default function RootLayout({

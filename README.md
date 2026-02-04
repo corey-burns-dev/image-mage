@@ -3,11 +3,13 @@
 OptiPic is a single-page app for fast image conversion and compression.
 
 ## Features
+
 - Convert between common image formats
 - Compression presets for web-ready assets
 - Batch-friendly, clean workflow
 
 ## Tech
+
 - Next.js App Router
 - Tailwind CSS
 

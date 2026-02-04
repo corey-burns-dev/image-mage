@@ -5,14 +5,7 @@ import Image from "next/image";
 import ThemeToggle from "./components/theme-toggle";
 
 type Preset = "tiny" | "small" | "balanced" | "crisp" | "custom";
-type OutputFormat =
-  | "auto"
-  | "jpeg"
-  | "png"
-  | "webp"
-  | "avif"
-  | "tiff"
-  | "gif";
+type OutputFormat = "auto" | "jpeg" | "png" | "webp" | "avif" | "tiff" | "gif";
 
 const presetQuality: Record<Exclude<Preset, "custom">, number> = {
   tiny: 45,
@@ -91,9 +84,7 @@ export default function Home() {
   );
 
   const handleAddFiles = (incoming: FileList | File[]) => {
-    const list = Array.from(incoming).filter((file) =>
-      file.type.startsWith("image/")
-    );
+    const list = Array.from(incoming).filter((file) => file.type.startsWith("image/"));
     if (!list.length) {
       setError("Please add image files only.");
       return;
@@ -137,9 +128,7 @@ export default function Home() {
       return prev.filter((item) => item.id !== id);
     });
     if (removedName) {
-      setEstimate((prev) =>
-        prev.filter((entry) => entry.inputName !== removedName)
-      );
+      setEstimate((prev) => prev.filter((entry) => entry.inputName !== removedName));
     }
   };
 
@@ -283,10 +272,10 @@ export default function Home() {
   return (
     <div className="relative min-h-screen overflow-hidden text-[color:var(--ink)]">
       <div className="pointer-events-none absolute -top-32 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,_rgba(79,209,183,0.2),_transparent_60%)] blur-2xl" />
-      <div className="pointer-events-none absolute right-[-120px] top-[120px] h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(244,183,64,0.18),_transparent_60%)] blur-2xl float-slow" />
-      <div className="pointer-events-none absolute bottom-[-120px] left-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(27,42,58,0.8),_transparent_60%)] blur-2xl float-slower" />
+      <div className="float-slow pointer-events-none absolute top-[120px] right-[-120px] h-[380px] w-[380px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(244,183,64,0.18),_transparent_60%)] blur-2xl" />
+      <div className="float-slower pointer-events-none absolute bottom-[-120px] left-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(27,42,58,0.8),_transparent_60%)] blur-2xl" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pb-20 pt-10 sm:px-10">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pt-10 pb-20 sm:px-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-2xl bg-[color:var(--sea)] text-black shadow-lg">
@@ -333,7 +322,7 @@ export default function Home() {
               onDrop={handleDrop}
               onDragOver={(event) => event.preventDefault()}
             >
-              <div className="text-sm uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <div className="text-sm tracking-[0.3em] text-[color:var(--muted)] uppercase">
                 Drop Files
               </div>
               <div className="font-display text-2xl font-semibold">
@@ -377,7 +366,7 @@ export default function Home() {
               </div>
             ) : null}
 
-            <div className="grid gap-3 max-h-[420px] overflow-auto pr-1">
+            <div className="grid max-h-[420px] gap-3 overflow-auto pr-1">
               {files.map((item) => (
                 <div
                   key={item.id}
@@ -444,20 +433,15 @@ export default function Home() {
 
             <div className="glass flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 px-5 py-4 text-sm text-[color:var(--muted)]">
               <div>
-                <div className="text-xs uppercase tracking-[0.2em]">
-                  Output
-                </div>
+                <div className="text-xs tracking-[0.2em] uppercase">Output</div>
                 <div className="font-semibold text-[color:var(--ink)]">
                   {result
                     ? `${formatBytes(result.size)} ready to download`
                     : estimate.length
-                    ? `Estimated ${formatBytes(
-                        estimate.reduce(
-                          (sum, item) => sum + item.outputSize,
-                          0
-                        )
-                      )}`
-                    : "Run conversion to generate output"}
+                      ? `Estimated ${formatBytes(
+                          estimate.reduce((sum, item) => sum + item.outputSize, 0)
+                        )}`
+                      : "Run conversion to generate output"}
                 </div>
               </div>
               <div className="flex gap-3">
@@ -485,9 +469,9 @@ export default function Home() {
             )}
           </section>
 
-          <section className="space-y-6 order-2 lg:order-none">
+          <section className="order-2 space-y-6 lg:order-none">
             <div className="glass rounded-[28px] border border-white/70 p-6">
-              <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+              <div className="text-xs tracking-[0.2em] text-[color:var(--muted)] uppercase">
                 Output Format
               </div>
               <div className="mt-4 grid gap-3">
@@ -496,9 +480,7 @@ export default function Home() {
                 </label>
                 <select
                   value={format}
-                  onChange={(event) =>
-                    setFormat(event.target.value as OutputFormat)
-                  }
+                  onChange={(event) => setFormat(event.target.value as OutputFormat)}
                   className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[color:var(--ink)]"
                 >
                   {Object.entries(formatLabels).map(([value, label]) => (
@@ -514,7 +496,7 @@ export default function Home() {
             </div>
 
             <div className="glass rounded-[28px] border border-white/70 p-6">
-              <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+              <div className="text-xs tracking-[0.2em] text-[color:var(--muted)] uppercase">
                 Estimate Summary
               </div>
               <div className="mt-4 grid gap-4 text-sm">
@@ -525,34 +507,24 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[color:var(--muted)]">
-                    Estimated output
-                  </span>
+                  <span className="text-[color:var(--muted)]">Estimated output</span>
                   <span className="font-semibold text-[color:var(--ink)]">
                     {estimate.length
                       ? formatBytes(
-                          estimate.reduce(
-                            (sum, item) => sum + item.outputSize,
-                            0
-                          )
+                          estimate.reduce((sum, item) => sum + item.outputSize, 0)
                         )
                       : "—"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[color:var(--muted)]">
-                    Estimated savings
-                  </span>
+                  <span className="text-[color:var(--muted)]">Estimated savings</span>
                   <span className="font-semibold text-[color:var(--sea)]">
                     {estimate.length
                       ? formatPercent(
                           Math.max(
                             0,
                             100 -
-                              (estimate.reduce(
-                                (sum, item) => sum + item.outputSize,
-                                0
-                              ) /
+                              (estimate.reduce((sum, item) => sum + item.outputSize, 0) /
                                 Math.max(totalInputSize, 1)) *
                                 100
                           )
@@ -561,16 +533,16 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-[color:var(--muted)]">
-                  Click “Estimate” to preview expected compression before you
-                  run the conversion.
+                  Click “Estimate” to preview expected compression before you run the
+                  conversion.
                 </div>
               </div>
             </div>
           </section>
 
-          <section className="space-y-6 order-3 lg:order-none">
+          <section className="order-3 space-y-6 lg:order-none">
             <div className="glass rounded-[28px] border border-white/70 p-6">
-              <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+              <div className="text-xs tracking-[0.2em] text-[color:var(--muted)] uppercase">
                 Compression
               </div>
               <div className="mt-4 grid gap-4">
@@ -579,21 +551,19 @@ export default function Home() {
                     Preset
                   </label>
                   <div className="mt-2 grid grid-cols-2 gap-2 text-xs font-semibold">
-                    {(["tiny", "small", "balanced", "crisp"] as Preset[]).map(
-                      (value) => (
-                        <button
-                          key={value}
-                          className={`rounded-full border px-3 py-2 transition ${
-                            preset === value
-                              ? "border-[color:var(--sea)] bg-[color:var(--sea)] text-black"
-                              : "border-white/10 bg-white/5 text-[color:var(--muted)] hover:border-white/30"
-                          }`}
-                          onClick={() => handlePresetChange(value)}
-                        >
-                          {value}
-                        </button>
-                      )
-                    )}
+                    {(["tiny", "small", "balanced", "crisp"] as Preset[]).map((value) => (
+                      <button
+                        key={value}
+                        className={`rounded-full border px-3 py-2 transition ${
+                          preset === value
+                            ? "border-[color:var(--sea)] bg-[color:var(--sea)] text-black"
+                            : "border-white/10 bg-white/5 text-[color:var(--muted)] hover:border-white/30"
+                        }`}
+                        onClick={() => handlePresetChange(value)}
+                      >
+                        {value}
+                      </button>
+                    ))}
                     <button
                       className={`rounded-full border px-3 py-2 transition ${
                         preset === "custom"
@@ -644,9 +614,9 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="space-y-6 order-4 lg:order-none">
+          <section className="order-4 space-y-6 lg:order-none">
             <div className="glass rounded-[28px] border border-white/70 p-6">
-              <div className="text-xs uppercase tracking-[0.2em] text-[color:var(--muted)]">
+              <div className="text-xs tracking-[0.2em] text-[color:var(--muted)] uppercase">
                 Resize & Output
               </div>
               <div className="mt-4 grid gap-4">
@@ -694,7 +664,8 @@ export default function Home() {
                 </div>
                 <label className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
                   <span className="tooltip-bubble">
-                    Preserves EXIF/metadata like camera info. Can slightly increase file size.
+                    Preserves EXIF/metadata like camera info. Can slightly increase file
+                    size.
                   </span>
                   <span className="font-semibold text-[color:var(--ink)]">
                     Keep metadata
@@ -731,7 +702,8 @@ export default function Home() {
                   }`}
                 >
                   <span className="tooltip-bubble">
-                    Lossless WebP keeps all detail with larger files. Only applies to WebP output.
+                    Lossless WebP keeps all detail with larger files. Only applies to WebP
+                    output.
                   </span>
                   <span className="font-semibold text-[color:var(--ink)]">
                     Lossless WebP
@@ -754,9 +726,7 @@ export default function Home() {
                   <input
                     type="checkbox"
                     checked={flattenBackground}
-                    onChange={(event) =>
-                      setFlattenBackground(event.target.checked)
-                    }
+                    onChange={(event) => setFlattenBackground(event.target.checked)}
                     className="h-4 w-4"
                   />
                 </label>
@@ -775,11 +745,10 @@ export default function Home() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs text-[color:var(--muted)]">
-              All processing happens on the server. GIF output is single-frame
-              and HEIC support depends on server codecs.
+              All processing happens on the server. GIF output is single-frame and HEIC
+              support depends on server codecs.
             </div>
           </section>
-
         </main>
       </div>
     </div>
