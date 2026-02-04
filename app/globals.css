@@ -8,6 +8,8 @@
   --sea: #2f7c6c;
   --sun: #e7a53a;
   --sky: #dce7f1;
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Georgia", "Times New Roman", serif;
   --card: rgba(255, 255, 255, 0.78);
   --card-strong: rgba(255, 255, 255, 0.92);
   --card-border: rgba(18, 19, 22, 0.12);
