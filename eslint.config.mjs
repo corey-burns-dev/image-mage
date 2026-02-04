@@ -18,7 +18,9 @@ const eslintConfig = defineConfig([
       "tailwind-canonical-classes": tailwindCanonical,
     },
     rules: {
-      "better-tailwindcss/enforce-consistent-class-order": "warn",
+      "better-tailwindcss/enforce-consistent-class-order": "off",
+      "better-tailwindcss/enforce-consistent-line-wrapping": "off",
+      "better-tailwindcss/no-unnecessary-whitespace": "off",
       "tailwind-canonical-classes/tailwind-canonical-classes": [
         "warn",
         { cssPath: "./app/globals.css" },
