@@ -1,6 +1,6 @@
-# OptiPic
+# Image Mage
 
-OptiPic is a single-page app for fast image conversion and compression.
+Image Mage is a single-page app for fast image conversion and compression.
 
 ## Features
 

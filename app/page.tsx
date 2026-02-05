@@ -191,7 +191,7 @@ export default function Home() {
       const blob = await response.blob();
       const contentDisposition = response.headers.get("content-disposition");
       const fileNameMatch = contentDisposition?.match(/filename="(.+)"/);
-      const name = fileNameMatch?.[1] ?? "optipic-export.zip";
+      const name = fileNameMatch?.[1] ?? "image-mage-export.zip";
       const url = URL.createObjectURL(blob);
 
       const nextResult = {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
-const storageKey = "optipic-theme";
+const storageKey = "image-mage-theme";
 
 function getSystemTheme(): Theme {
   if (typeof window === "undefined") return "light";

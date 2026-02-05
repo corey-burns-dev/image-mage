@@ -278,7 +278,7 @@ export async function POST(request: NextRequest) {
     return new Response(new Uint8Array(zipBuffer), {
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="optipic-export.zip"`,
+        "Content-Disposition": `attachment; filename="image-mage-export.zip"`,
       },
     });
   } catch (error) {
