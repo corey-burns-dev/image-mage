@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/useSemanticElements: <explanation> */
 "use client";
 
 import Image from "next/image";
@@ -49,7 +50,7 @@ function formatBytes(bytes: number) {
   const k = 1024;
   const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+  return `${(bytes / k ** i).toFixed(1)} ${sizes[i]}`;
 }
 
 function formatPercent(value: number) {
@@ -73,6 +74,7 @@ export default function Home() {
   const [progressive, setProgressive] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [estimating, setEstimating] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [estimate, setEstimate] = useState<Estimate[]>([]);
   const [status, setStatus] = useState<"idle" | "processing" | "done">("idle");
   const [error, setError] = useState("");
@@ -105,6 +107,7 @@ export default function Home() {
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
     event.preventDefault();
+    setIsDragOver(false);
     if (event.dataTransfer?.files?.length) {
       handleAddFiles(event.dataTransfer.files);
     }
@@ -133,7 +136,9 @@ export default function Home() {
   };
 
   const clearAll = () => {
-    files.forEach((item) => URL.revokeObjectURL(item.url));
+    files.forEach((item) => {
+      URL.revokeObjectURL(item.url);
+    });
     setFiles([]);
     setResult(null);
     setEstimate([]);
@@ -158,7 +163,7 @@ export default function Home() {
     setResult(null);
 
     const formData = new FormData();
-    files.forEach((item) => formData.append("files", item.file, item.file.name));
+    files.map((item) => formData.append("files", item.file, item.file.name));
     formData.set("format", format);
     formData.set("preset", preset === "custom" ? "balanced" : preset);
     formData.set("quality", String(quality));
@@ -217,7 +222,7 @@ export default function Home() {
     setError("");
 
     const formData = new FormData();
-    files.forEach((item) => formData.append("files", item.file, item.file.name));
+    files.map((item) => formData.append("files", item.file, item.file.name));
     formData.set("format", format);
     formData.set("preset", preset === "custom" ? "balanced" : preset);
     formData.set("quality", String(quality));
@@ -264,43 +269,21 @@ export default function Home() {
 
   useEffect(() => {
     return () => {
-      files.forEach((item) => URL.revokeObjectURL(item.url));
+      files.map((item) => URL.revokeObjectURL(item.url));
       if (result) URL.revokeObjectURL(result.url);
     };
   }, [files, result]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden text-foreground">
-      <div className="
-        pointer-events-none absolute -top-32 left-1/2 h-130 w-130
-        -translate-x-1/2 rounded-full
-        bg-[radial-gradient(circle_at_center,rgba(79,209,183,0.2),transparent_60%)]
-        blur-2xl
-      " />
-      <div className="
-        float-slow pointer-events-none absolute top-30 -right-30 h-95 w-95
-        rounded-full
-        bg-[radial-gradient(circle_at_center,rgba(244,183,64,0.18),transparent_60%)]
-        blur-2xl
-      " />
-      <div className="
-        float-slower pointer-events-none absolute -bottom-30 -left-30 h-105
-        w-105 rounded-full
-        bg-[radial-gradient(circle_at_center,rgba(27,42,58,0.8),transparent_60%)]
-        blur-2xl
-      " />
+    <div className="text-foreground relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-130 w-130 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(79,209,183,0.2),transparent_60%)] blur-2xl" />
+      <div className="float-slow pointer-events-none absolute top-30 -right-30 h-95 w-95 rounded-full bg-[radial-gradient(circle_at_center,rgba(244,183,64,0.18),transparent_60%)] blur-2xl" />
+      <div className="float-slower pointer-events-none absolute -bottom-30 -left-30 h-105 w-105 rounded-full bg-[radial-gradient(circle_at_center,rgba(27,42,58,0.8),transparent_60%)] blur-2xl" />
 
-      <div className="
-        relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pt-10
-        pb-20
-        sm:px-10
-      ">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 pt-10 pb-20 sm:px-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="
-              grid size-10 place-items-center rounded-2xl bg-(--sea) text-black
-              shadow-lg
-            ">
+            <div className="grid size-10 place-items-center rounded-2xl bg-(--sea) text-black shadow-lg">
               OP
             </div>
             <div>
@@ -319,24 +302,16 @@ export default function Home() {
             </div>
             <ThemeToggle />
             <button
-              className="
-                rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm
-                font-semibold text-foreground transition
-                hover:border-white/30 hover:bg-white/10
-                disabled:cursor-not-allowed disabled:opacity-60
-              "
+              type="button"
+              className="text-foreground rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold transition hover:border-white/30 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleEstimate}
               disabled={estimating || processing || !files.length}
             >
               {estimating ? "Estimating..." : "Estimate"}
             </button>
             <button
-              className="
-                rounded-full bg-(--sea) px-5 py-2 text-sm font-medium text-black
-                shadow-md transition
-                hover:-translate-y-0.5 hover:bg-[#3cc0a6]
-                disabled:cursor-not-allowed disabled:opacity-60
-              "
+              type="button"
+              className="rounded-full bg-(--sea) px-5 py-2 text-sm font-medium text-black shadow-md transition hover:-translate-y-0.5 hover:bg-[#3cc0a6] disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleSubmit}
               disabled={processing || !files.length}
             >
@@ -345,54 +320,52 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="
-          mt-12 grid gap-8
-          lg:grid-cols-2
-          xl:grid-cols-3
-          2xl:grid-cols-4
-        ">
-          <section className="
-            space-y-6
-            lg:col-span-1
-          ">
+        <main className="mt-12 grid gap-8 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+          <section className="space-y-6 lg:col-span-1">
             <div
-              className={`
-                glass flex min-h-45 flex-col items-center justify-center gap-4
-                rounded-[28px] border border-white/10 p-6 text-center transition
-                hover:-translate-y-0.5
-                ${
+              role="button"
+              tabIndex={0}
+              aria-label="Drop images here or press Enter to choose files"
+              className={`glass flex min-h-45 w-full flex-col items-center justify-center gap-4 rounded-[28px] border border-white/10 p-6 text-center transition hover:-translate-y-0.5 ${
                 status === "processing" ? "animate-pulse-soft" : ""
-              }
-              `}
+              } ${isDragOver ? "ring-2 ring-(--sea)/60" : ""} `}
               onDrop={handleDrop}
-              onDragOver={(event) => event.preventDefault()}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragEnter={() => setIsDragOver(true)}
+              onDragLeave={() => setIsDragOver(false)}
+              onClick={() => inputRef.current?.click()}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  inputRef.current?.click();
+                }
+              }}
             >
               <div className="text-sm tracking-[0.3em] text-(--muted) uppercase">
-                Drop Files
+                {isDragOver ? "Release to Upload" : "Drop Files"}
               </div>
               <div className="font-display text-2xl font-semibold">
-                Drag images here or choose files
+                {isDragOver ? "Drop images now" : "Drag images here or choose files"}
               </div>
               <div className="text-sm text-(--muted)">
-                JPG, PNG, WebP, AVIF, TIFF, GIF, and more
+                {isDragOver
+                  ? "We will start preparing them immediately."
+                  : "JPG, PNG, WebP, AVIF, TIFF, GIF, and more"}
               </div>
               <div className="flex flex-wrap gap-3">
                 <button
-                  className="
-                    rounded-full bg-(--sea) px-6 py-2 text-sm font-semibold
-                    text-black shadow-lg transition
-                    hover:-translate-y-0.5 hover:bg-[#3cc0a6]
-                  "
+                  type="button"
+                  className="rounded-full bg-(--sea) px-6 py-2 text-sm font-semibold text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-[#3cc0a6]"
                   onClick={() => inputRef.current?.click()}
                 >
                   Choose Images
                 </button>
                 <button
-                  className="
-                    rounded-full border border-white/10 bg-white/5 px-6 py-2
-                    text-sm font-semibold text-foreground transition
-                    hover:border-white/30 hover:bg-white/10
-                  "
+                  type="button"
+                  className="text-foreground rounded-full border border-white/10 bg-white/5 px-6 py-2 text-sm font-semibold transition hover:border-white/30 hover:bg-white/10"
                   onClick={clearAll}
                 >
                   Clear All
@@ -414,10 +387,7 @@ export default function Home() {
             </div>
 
             {error ? (
-              <div className="
-                rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3
-                text-sm text-red-200
-              ">
+              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                 {error}
               </div>
             ) : null}
@@ -426,10 +396,7 @@ export default function Home() {
               {files.map((item) => (
                 <div
                   key={item.id}
-                  className="
-                    glass flex flex-wrap items-center justify-between gap-4
-                    rounded-2xl border border-white/10 px-4 py-3 text-sm
-                  "
+                  className="glass flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 px-4 py-3 text-sm"
                 >
                   <div className="flex items-center gap-4">
                     <Image
@@ -441,7 +408,9 @@ export default function Home() {
                       className="size-12 rounded-xl object-cover"
                     />
                     <div>
-                      <div className="font-semibold text-(--ink)">{item.file.name}</div>
+                      <div className="text-foreground font-semibold">
+                        {item.file.name}
+                      </div>
                       <div className="text-xs text-(--muted)">
                         {formatBytes(item.file.size)} · {item.file.type || "—"}
                       </div>
@@ -450,7 +419,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     {estimate.length ? (
                       <div className="text-right text-xs text-(--muted)">
-                        <div className="font-semibold text-(--ink)">
+                        <div className="text-foreground font-semibold">
                           {formatBytes(
                             estimate.find((entry) => entry.inputName === item.file.name)
                               ?.outputSize ?? item.file.size
@@ -473,11 +442,8 @@ export default function Home() {
                       </div>
                     ) : null}
                     <button
-                      className="
-                        rounded-full border border-white/10 px-4 py-1 text-xs
-                        font-semibold text-(--muted) transition
-                        hover:border-white/30 hover:text-(--ink)
-                      "
+                      type="button"
+                      className="hover:text-foreground rounded-full border border-white/10 px-4 py-1 text-xs font-semibold text-(--muted) transition hover:border-white/30"
                       onClick={() => removeFile(item.id)}
                     >
                       Remove
@@ -486,23 +452,16 @@ export default function Home() {
                 </div>
               ))}
               {!files.length && (
-                <div className="
-                  rounded-2xl border border-dashed border-white/10 px-4 py-6
-                  text-center text-sm text-(--muted)
-                ">
+                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-(--muted)">
                   Drop some files to see them listed here.
                 </div>
               )}
             </div>
 
-            <div className="
-              glass flex flex-wrap items-center justify-between gap-4
-              rounded-2xl border border-white/10 px-5 py-4 text-sm
-              text-(--muted)
-            ">
+            <div className="glass flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 px-5 py-4 text-sm text-(--muted)">
               <div>
                 <div className="text-xs tracking-[0.2em] uppercase">Output</div>
-                <div className="font-semibold text-(--ink)">
+                <div className="text-foreground font-semibold">
                   {result
                     ? `${formatBytes(result.size)} ready to download`
                     : estimate.length
@@ -514,12 +473,8 @@ export default function Home() {
               </div>
               <div className="flex gap-3">
                 <button
-                  className="
-                    rounded-full bg-(--sea) px-5 py-2 text-xs font-semibold
-                    text-black shadow-md transition
-                    hover:-translate-y-0.5 hover:bg-[#3cc0a6]
-                    disabled:cursor-not-allowed disabled:opacity-60
-                  "
+                  type="button"
+                  className="rounded-full bg-(--sea) px-5 py-2 text-xs font-semibold text-black shadow-md transition hover:-translate-y-0.5 hover:bg-[#3cc0a6] disabled:cursor-not-allowed disabled:opacity-60"
                   onClick={handleSubmit}
                   disabled={processing || !files.length}
                 >
@@ -527,11 +482,8 @@ export default function Home() {
                 </button>
                 {result && (
                   <button
-                    className="
-                      rounded-full border border-white/10 bg-white/5 px-5 py-2
-                      text-xs font-semibold text-(--ink) transition
-                      hover:border-white/30 hover:bg-white/10
-                    "
+                    type="button"
+                    className="text-foreground rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-semibold transition hover:border-white/30 hover:bg-white/10"
                     onClick={() => triggerDownload(result.url, result.name)}
                   >
                     Download Again
@@ -540,32 +492,25 @@ export default function Home() {
               </div>
             </div>
             {status === "done" && (
-              <div className="
-                animate-pop rounded-2xl border border-emerald-500/20
-                bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200
-              ">
+              <div className="animate-pop rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                 Finished. Your files are ready.
               </div>
             )}
           </section>
 
-          <section className="
-            order-2 space-y-6
-            lg:order-0
-          ">
+          <section className="order-2 space-y-6 lg:order-0">
             <div className="glass rounded-[28px] border border-white/70 p-6">
               <div className="text-xs tracking-[0.2em] text-(--muted) uppercase">
                 Output Format
               </div>
               <div className="mt-4 grid gap-3">
-                <label className="text-sm font-semibold text-(--ink)">Format</label>
+                <label htmlFor="format" className="text-foreground text-sm font-semibold">
+                  Format
+                </label>
                 <select
                   value={format}
                   onChange={(event) => setFormat(event.target.value as OutputFormat)}
-                  className="
-                    rounded-2xl border border-white/10 bg-white/5 px-4 py-3
-                    text-sm text-(--ink)
-                  "
+                  className="text-foreground rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                 >
                   {Object.entries(formatLabels).map(([value, label]) => (
                     <option key={value} value={value}>
@@ -586,13 +531,13 @@ export default function Home() {
               <div className="mt-4 grid gap-4 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-(--muted)">Input total</span>
-                  <span className="font-semibold text-(--ink)">
+                  <span className="text-foreground font-semibold">
                     {formatBytes(totalInputSize)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-(--muted)">Estimated output</span>
-                  <span className="font-semibold text-(--ink)">
+                  <span className="text-foreground font-semibold">
                     {estimate.length
                       ? formatBytes(
                           estimate.reduce((sum, item) => sum + item.outputSize, 0)
@@ -616,10 +561,7 @@ export default function Home() {
                       : "—"}
                   </span>
                 </div>
-                <div className="
-                  rounded-2xl border border-white/10 bg-white/5 px-4 py-3
-                  text-xs text-(--muted)
-                ">
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs text-(--muted)">
                   Click “Estimate” to preview expected compression before you run the
                   conversion.
                 </div>
@@ -627,51 +569,38 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="
-            order-3 space-y-6
-            lg:order-0
-          ">
+          <section className="order-3 space-y-6 lg:order-0">
             <div className="glass rounded-[28px] border border-white/70 p-6">
               <div className="text-xs tracking-[0.2em] text-(--muted) uppercase">
                 Compression
               </div>
               <div className="mt-4 grid gap-4">
                 <div>
-                  <label className="text-sm font-semibold text-(--ink)">Preset</label>
-                  <div className="
-                    mt-2 grid grid-cols-2 gap-2 text-xs font-semibold
-                  ">
+                  <label htmlFor="" className="text-foreground text-sm font-semibold">
+                    Preset
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs font-semibold">
                     {(["tiny", "small", "balanced", "crisp"] as Preset[]).map((value) => (
                       <button
+                        type="button"
                         key={value}
-                        className={`
-                          rounded-full border px-3 py-2 transition
-                          ${
+                        className={`rounded-full border px-3 py-2 transition ${
                           preset === value
                             ? `border-(--sea) bg-(--sea) text-black`
-                            : `
-                              border-white/10 bg-white/5 text-(--muted)
-                              hover:border-white/30
-                            `
-                        }
-                        `}
+                            : `border-white/10 bg-white/5 text-(--muted) hover:border-white/30`
+                        } `}
                         onClick={() => handlePresetChange(value)}
                       >
                         {value}
                       </button>
                     ))}
                     <button
-                      className={`
-                        rounded-full border px-3 py-2 transition
-                        ${
+                      type="button"
+                      className={`rounded-full border px-3 py-2 transition ${
                         preset === "custom"
                           ? `border-(--sea) bg-(--sea) text-black`
-                          : `
-                            border-white/10 bg-white/5 text-(--muted)
-                            hover:border-white/30
-                          `
-                      }
-                      `}
+                          : `border-white/10 bg-white/5 text-(--muted) hover:border-white/30`
+                      } `}
                       onClick={() => setPreset("custom")}
                     >
                       custom
@@ -680,10 +609,14 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-(--ink)">
+                  <label
+                    htmlFor="quality"
+                    className="text-foreground text-sm font-semibold"
+                  >
                     Quality ({quality})
                   </label>
                   <input
+                    id="quality"
                     type="range"
                     min={10}
                     max={95}
@@ -697,19 +630,20 @@ export default function Home() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-(--ink)">
+                  <label
+                    htmlFor="targetSizeKB"
+                    className="text-foreground text-sm font-semibold"
+                  >
                     Target size (KB)
                   </label>
                   <input
+                    id="targetSizeKB"
                     type="number"
                     min={0}
                     placeholder="Leave blank for auto"
                     value={targetSizeKB}
                     onChange={(event) => setTargetSizeKB(event.target.value)}
-                    className="
-                      mt-2 w-full rounded-2xl border border-white/10 bg-white/5
-                      px-4 py-3 text-sm
-                    "
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                   />
                   <div className="mt-2 text-xs text-(--muted)">
                     Best-effort target for JPEG, WebP, and AVIF.
@@ -719,10 +653,7 @@ export default function Home() {
             </div>
           </section>
 
-          <section className="
-            order-4 space-y-6
-            lg:order-0
-          ">
+          <section className="order-4 space-y-6 lg:order-0">
             <div className="glass rounded-[28px] border border-white/70 p-6">
               <div className="text-xs tracking-[0.2em] text-(--muted) uppercase">
                 Resize & Output
@@ -730,7 +661,10 @@ export default function Home() {
               <div className="mt-4 grid gap-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-sm font-semibold text-(--ink)">
+                    <label
+                      htmlFor="width"
+                      className="text-foreground text-sm font-semibold"
+                    >
                       Width (px)
                     </label>
                     <input
@@ -738,14 +672,14 @@ export default function Home() {
                       min={0}
                       value={width}
                       onChange={(event) => setWidth(event.target.value)}
-                      className="
-                        mt-2 w-full rounded-2xl border border-white/10
-                        bg-white/5 px-4 py-3 text-sm
-                      "
+                      className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-semibold text-(--ink)">
+                    <label
+                      htmlFor="height"
+                      className="text-foreground text-sm font-semibold"
+                    >
                       Height (px)
                     </label>
                     <input
@@ -753,40 +687,32 @@ export default function Home() {
                       min={0}
                       value={height}
                       onChange={(event) => setHeight(event.target.value)}
-                      className="
-                        mt-2 w-full rounded-2xl border border-white/10
-                        bg-white/5 px-4 py-3 text-sm
-                      "
+                      className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-(--ink)">Fit</label>
+                  <label htmlFor="fit" className="text-foreground text-sm font-semibold">
+                    Fit
+                  </label>
                   <select
                     value={fit}
                     onChange={(event) =>
                       setFit(event.target.value as "inside" | "cover" | "contain")
                     }
-                    className="
-                      mt-2 w-full rounded-2xl border border-white/10 bg-white/5
-                      px-4 py-3 text-sm text-(--ink)
-                    "
+                    className="text-foreground mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
                   >
                     <option value="inside">Inside (keep aspect)</option>
                     <option value="contain">Contain (pad)</option>
                     <option value="cover">Cover (crop)</option>
                   </select>
                 </div>
-                <label className="
-                  group relative flex items-center justify-between gap-3
-                  rounded-2xl border border-white/10 bg-white/5 px-4 py-3
-                  text-sm
-                ">
+                <label className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
                   <span className="tooltip-bubble">
                     Preserves EXIF/metadata like camera info. Can slightly increase file
                     size.
                   </span>
-                  <span className="font-semibold text-(--ink)">Keep metadata</span>
+                  <span className="text-foreground font-semibold">Keep metadata</span>
                   <input
                     type="checkbox"
                     checked={keepMetadata}
@@ -795,19 +721,14 @@ export default function Home() {
                   />
                 </label>
                 <label
-                  className={`
-                    group relative flex items-center justify-between gap-3
-                    rounded-2xl border border-white/10 bg-white/5 px-4 py-3
-                    text-sm
-                    ${
+                  className={`group relative flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm ${
                     format !== "jpeg" ? "opacity-60" : ""
-                  }
-                  `}
+                  } `}
                 >
                   <span className="tooltip-bubble">
                     Progressive JPEGs load in passes. Only applies when output is JPG.
                   </span>
-                  <span className="font-semibold text-(--ink)">Progressive JPEG</span>
+                  <span className="text-foreground font-semibold">Progressive JPEG</span>
                   <input
                     type="checkbox"
                     checked={progressive}
@@ -817,20 +738,15 @@ export default function Home() {
                   />
                 </label>
                 <label
-                  className={`
-                    group relative flex items-center justify-between gap-3
-                    rounded-2xl border border-white/10 bg-white/5 px-4 py-3
-                    text-sm
-                    ${
+                  className={`group relative flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm ${
                     format !== "webp" ? "opacity-60" : ""
-                  }
-                  `}
+                  } `}
                 >
                   <span className="tooltip-bubble">
                     Lossless WebP keeps all detail with larger files. Only applies to WebP
                     output.
                   </span>
-                  <span className="font-semibold text-(--ink)">Lossless WebP</span>
+                  <span className="text-foreground font-semibold">Lossless WebP</span>
                   <input
                     type="checkbox"
                     checked={lossless}
@@ -839,15 +755,13 @@ export default function Home() {
                     disabled={format !== "webp"}
                   />
                 </label>
-                <label className="
-                  group relative flex items-center justify-between gap-3
-                  rounded-2xl border border-white/10 bg-white/5 px-4 py-3
-                  text-sm
-                ">
+                <label className="group relative flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
                   <span className="tooltip-bubble">
                     Fill transparent areas with a background color (useful for JPG).
                   </span>
-                  <span className="font-semibold text-(--ink)">Flatten transparency</span>
+                  <span className="text-foreground font-semibold">
+                    Flatten transparency
+                  </span>
                   <input
                     type="checkbox"
                     checked={flattenBackground}
@@ -855,27 +769,19 @@ export default function Home() {
                     className="size-4"
                   />
                 </label>
-                <div className="
-                  flex items-center justify-between gap-3 rounded-2xl border
-                  border-white/10 bg-white/5 px-4 py-3 text-sm
-                ">
-                  <span className="font-semibold text-(--ink)">Background color</span>
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
+                  <span className="text-foreground font-semibold">Background color</span>
                   <input
                     type="color"
                     value={background}
                     onChange={(event) => setBackground(event.target.value)}
-                    className="
-                      h-8 w-12 rounded-lg border border-black/10 bg-transparent
-                    "
+                    className="h-8 w-12 rounded-lg border border-black/10 bg-transparent"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="
-              rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs
-              text-(--muted)
-            ">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 text-xs text-(--muted)">
               All processing happens on the server. GIF output is single-frame and HEIC
               support depends on server codecs.
             </div>
