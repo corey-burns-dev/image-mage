@@ -12,16 +12,11 @@ function getSystemTheme(): Theme {
 }
 
 export default function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
     const saved = localStorage.getItem(storageKey) as Theme | null;
     return saved ?? getSystemTheme();
   });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -41,7 +36,7 @@ export default function ThemeToggle() {
       type="button"
     >
       <span suppressHydrationWarning>
-        {mounted ? (theme === "light" ? "Dark mode" : "Light mode") : "Theme"}
+        {theme === "light" ? "Dark mode" : "Light mode"}
       </span>
     </button>
   );
