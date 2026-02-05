@@ -1,8 +1,13 @@
+pre-commit:
+  commands:
+    format:
+      glob: "*.{js,ts,jsx,tsx,json,jsonc,css,md}"
+      run: bun run format
+      stage_fixed: true
+    lint:
+      run: bun run lint
+
 pre-push:
   commands:
     build:
       run: bun run build
-    lint:
-      run: bun run lint
-    format:
-      run: bun run format
