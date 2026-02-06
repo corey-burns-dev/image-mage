@@ -6,4 +6,10 @@
   "assets": {
     "directory": ".open-next/assets",
   },
+  "routes": [
+    {
+      "pattern": "image-mage.coreyburns.ca",
+      "custom_domain": true,
+    },
+  ],
 }
