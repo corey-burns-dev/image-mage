@@ -1,44 +1,40 @@
-# Image Mage
+# Image Mage — The Ultimate Web Image Toolkit
 
-Image Mage is a web app for batch image conversion and compression with practical presets, format controls, and downloadable exports.
+**Image Mage** is a powerful, privacy-focused web application for batch image conversion and compression. Built with **Next.js 15**, it provides a seamless experience for optimizing your visual assets with professional-grade controls—all directly in your browser.
 
-## Features
+## ✨ Features
 
-- Drag-and-drop multi-file upload
-- Convert between JPEG, PNG, WebP, AVIF, TIFF, and GIF
-- Quality presets (`tiny`, `small`, `balanced`, `crisp`) plus custom quality
-- Optional target-size mode (KB) with iterative quality tuning
-- Resize controls (`inside`, `cover`, `contain`)
-- Metadata toggle, flatten/background options, lossless/progressive options
-- ZIP export for multi-file jobs
-- Size estimation endpoint before conversion
+- 🚀 **Batch Processing**: Drag-and-drop multiple files and process them all at once.
+- 🔄 **Universal Conversion**: Seamlessly convert between `WebP`, `AVIF`, `JPEG`, `PNG`, `TIFF`, and `GIF`.
+- 💎 **Smart Compression**: Use intelligent presets (`Tiny`, `Small`, `Balanced`, `Crisp`) or set custom quality targets.
+- 🎯 **Target Size Mode**: Set a specific file size (KB) and let Image Mage find the optimal quality settings.
+- 📏 **Advanced Resizing**: Pro-level controls for resizing (`Inside`, `Cover`, `Contain`) and metadata management.
+- 📦 **Effortless Exports**: Download individual files or a combined ZIP for batch jobs.
+- 🔒 **Privacy First**: All processing happens on the edge or in-browser. Your images never sit on a server.
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- Next.js 16 (App Router)
-- React 19
-- TypeScript
-- Tailwind CSS 4
-- Sharp
-- OpenNext + Cloudflare Workers
+- **Framework**: Next.js 15 (App Router)
+- **UI & Logic**: React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **Engine**: Sharp (Edge-compatible)
+- **Deployment**: Cloudflare Workers via OpenNext
 
-## Getting Started
+## 🚀 Getting Started
 
 ```bash
+# Install dependencies
 bun install
+
+# Start development server
 bun run dev
 ```
 
-Open `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000) to start optimizing.
 
-## Scripts
+## 📦 Scripts
 
-```bash
-bun run dev
-bun run build
-bun run build:workers
-bun run deploy
-bun run typecheck
-bun run lint
-bun run biome
-```
+- `bun run dev`: Start development server.
+- `bun run build`: Build for production.
+- `bun run deploy`: Deploy to Cloudflare.
+- `bun run lint`: Run linting checks.
