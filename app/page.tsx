@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type DragEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type DragEvent, useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 type Preset = "tiny" | "small" | "balanced" | "crisp" | "custom";
 type OutputFormat = "auto" | "jpeg" | "png" | "webp" | "avif" | "tiff" | "gif";
@@ -43,6 +43,17 @@ type Estimate = {
   outputSize: number;
 };
 
+const commonSizePresets = [
+  { label: "Auto", width: "", height: "" },
+  { label: "Square", width: "1080", height: "1080" },
+  { label: "Story", width: "1080", height: "1920" },
+  { label: "HD", width: "1280", height: "720" },
+  { label: "FHD", width: "1920", height: "1080" },
+  { label: "4K", width: "3840", height: "2160" },
+  { label: "Social", width: "1200", height: "630" },
+  { label: "Thumb", width: "320", height: "320" },
+];
+
 function formatBytes(bytes: number) {
   if (bytes === 0) return "0 B";
   const k = 1024;
@@ -57,6 +68,8 @@ function formatPercent(value: number) {
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const filesRef = useRef<LocalFile[]>([]);
+  const resultRef = useRef<Result | null>(null);
   const [files, setFiles] = useState<LocalFile[]>([]);
   const [format, setFormat] = useState<OutputFormat>("auto");
   const [preset, setPreset] = useState<Preset>("balanced");
@@ -80,8 +93,20 @@ export default function Home() {
 
   const totalInputSize = useMemo(
     () => files.reduce((sum, item) => sum + item.file.size, 0),
-    [files]
+    [files],
   );
+  const totalEstimatedSize = useMemo(
+    () => estimate.reduce((sum, item) => sum + item.outputSize, 0),
+    [estimate],
+  );
+  const estimatedPercent = useMemo(() => {
+    if (!estimate.length) return 0;
+    return Math.min(100, (totalEstimatedSize / Math.max(1, totalInputSize)) * 100);
+  }, [estimate.length, totalEstimatedSize, totalInputSize]);
+  const estimatedSavings = useMemo(() => {
+    if (!estimate.length) return 0;
+    return Math.max(0, 100 - (totalEstimatedSize / Math.max(1, totalInputSize)) * 100);
+  }, [estimate.length, totalEstimatedSize, totalInputSize]);
 
   const handleAddFiles = (incoming: FileList | File[]) => {
     const list = Array.from(incoming).filter((file) => file.type.startsWith("image/"));
@@ -118,6 +143,11 @@ export default function Home() {
     }
   };
 
+  const applySizePreset = useCallback((nextWidth: string, nextHeight: string) => {
+    setWidth(nextWidth);
+    setHeight(nextHeight);
+  }, []);
+
   const removeFile = (id: string) => {
     let removedName = "";
     setFiles((prev) => {
@@ -137,6 +167,7 @@ export default function Home() {
     files.forEach((item) => {
       URL.revokeObjectURL(item.url);
     });
+    if (result) URL.revokeObjectURL(result.url);
     setFiles([]);
     setResult(null);
     setEstimate([]);
@@ -150,18 +181,11 @@ export default function Home() {
     link.click();
   };
 
-  const handleSubmit = async () => {
-    if (!files.length) {
-      setError("Add at least one image to continue.");
-      return;
-    }
-    setProcessing(true);
-    setStatus("processing");
-    setError("");
-    setResult(null);
-
+  const buildRequestFormData = useCallback(() => {
     const formData = new FormData();
-    files.map((item) => formData.append("files", item.file, item.file.name));
+    files.forEach((item) => {
+      formData.append("files", item.file, item.file.name);
+    });
     formData.set("format", format);
     formData.set("preset", preset === "custom" ? "balanced" : preset);
     formData.set("quality", String(quality));
@@ -174,6 +198,34 @@ export default function Home() {
     formData.set("background", background);
     formData.set("lossless", String(lossless));
     formData.set("progressive", String(progressive));
+    return formData;
+  }, [
+    files,
+    format,
+    preset,
+    quality,
+    targetSizeKB,
+    width,
+    height,
+    fit,
+    keepMetadata,
+    flattenBackground,
+    background,
+    lossless,
+    progressive,
+  ]);
+
+  const handleSubmit = async () => {
+    if (!files.length) {
+      setError("Add at least one image to continue.");
+      return;
+    }
+    setProcessing(true);
+    setStatus("processing");
+    setError("");
+    setResult(null);
+
+    const formData = buildRequestFormData();
 
     try {
       const response = await fetch("/api/convert", {
@@ -219,20 +271,7 @@ export default function Home() {
     setStatus("processing");
     setError("");
 
-    const formData = new FormData();
-    files.map((item) => formData.append("files", item.file, item.file.name));
-    formData.set("format", format);
-    formData.set("preset", preset === "custom" ? "balanced" : preset);
-    formData.set("quality", String(quality));
-    if (targetSizeKB) formData.set("targetSizeKB", targetSizeKB);
-    if (width) formData.set("width", width);
-    if (height) formData.set("height", height);
-    formData.set("fit", fit);
-    formData.set("keepMetadata", String(keepMetadata));
-    formData.set("flatten", String(flattenBackground));
-    formData.set("background", background);
-    formData.set("lossless", String(lossless));
-    formData.set("progressive", String(progressive));
+    const formData = buildRequestFormData();
 
     try {
       const response = await fetch("/api/estimate", {
@@ -266,18 +305,26 @@ export default function Home() {
   }, [format]);
 
   useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  useEffect(() => {
+    resultRef.current = result;
+  }, [result]);
+
+  useEffect(() => {
     return () => {
-      files.map((item) => URL.revokeObjectURL(item.url));
-      if (result) URL.revokeObjectURL(result.url);
+      filesRef.current.forEach((item) => URL.revokeObjectURL(item.url));
+      if (resultRef.current) URL.revokeObjectURL(resultRef.current.url);
     };
-  }, [files, result]);
+  }, []);
 
   return (
     <div className="text-foreground bg-background relative min-h-screen w-full font-sans">
       {/* Background Gradients */}
       <div className="pointer-events-none absolute -top-32 left-1/2 h-130 w-130 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,var(--glow),transparent_70%)] opacity-50 blur-3xl" />
 
-      <div className="relative flex min-h-screen flex-col justify-center px-4 pt-4 pb-4">
+      <div className="relative flex min-h-screen flex-col justify-center p-4">
         {/* Header */}
         <header className="mb-4 flex shrink-0 items-center justify-between">
           <div className="flex items-center gap-2">
@@ -285,9 +332,7 @@ export default function Home() {
               IM
             </div>
             <div>
-              <h1 className="font-display text-base/tight font-bold tracking-tight">
-                Image Mage
-              </h1>
+              <h1 className="font-display text-base/tight font-bold tracking-tight">Image Mage</h1>
               <p className="text-[10px]/tight font-medium tracking-wider text-(--muted) uppercase">
                 Optimizer
               </p>
@@ -300,9 +345,7 @@ export default function Home() {
                 <div className="text-[9px] font-bold tracking-tighter text-(--muted) uppercase">
                   Files
                 </div>
-                <div className="text-[11px] leading-none font-semibold">
-                  {files.length}
-                </div>
+                <div className="text-[11px] leading-none font-semibold">{files.length}</div>
               </div>
               <div className="text-right">
                 <div className="text-[9px] font-bold tracking-tighter text-(--muted) uppercase">
@@ -393,7 +436,7 @@ export default function Home() {
                 </button>
               </div>
 
-              <div className="max-h-75 flex-1 overflow-y-auto px-2 py-2 lg:max-h-none">
+              <div className="dashboard-scroll max-h-75 flex-1 overflow-y-auto p-2 lg:max-h-none">
                 {files.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center p-4 text-center">
                     <p className="text-[10px] text-(--muted)">No images</p>
@@ -484,27 +527,23 @@ export default function Home() {
                     <span className="text-[10px] font-bold tracking-wider text-(--muted) uppercase">
                       Preset
                     </span>
-                    <span className="text-[9px] font-bold text-(--sea) uppercase">
-                      {preset}
-                    </span>
+                    <span className="text-[9px] font-bold text-(--sea) uppercase">{preset}</span>
                   </div>
                   <div className="grid grid-cols-5 gap-1.5">
-                    {(["tiny", "small", "balanced", "crisp", "custom"] as Preset[]).map(
-                      (p) => (
-                        <button
-                          type="button"
-                          key={p}
-                          onClick={() => handlePresetChange(p)}
-                          className={`rounded-lg py-1.5 text-[9px] font-bold tracking-tighter uppercase transition ${
-                            preset === p
-                              ? "bg-(--sea) text-white shadow-md"
-                              : "bg-white/5 text-(--muted) hover:bg-white/10"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      )
-                    )}
+                    {(["tiny", "small", "balanced", "crisp", "custom"] as Preset[]).map((p) => (
+                      <button
+                        type="button"
+                        key={p}
+                        onClick={() => handlePresetChange(p)}
+                        className={`rounded-lg py-1.5 text-[9px] font-bold tracking-tighter uppercase transition ${
+                          preset === p
+                            ? "bg-(--sea) text-white shadow-md"
+                            : "bg-white/5 text-(--muted) hover:bg-white/10"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -562,37 +601,21 @@ export default function Home() {
                     Est. Size
                   </span>
                   <span className="font-mono font-bold">
-                    {estimate.length
-                      ? formatBytes(estimate.reduce((s, i) => s + i.outputSize, 0))
-                      : "—"}
+                    {estimate.length ? formatBytes(totalEstimatedSize) : "—"}
                   </span>
                 </div>
                 <div className="h-1 w-full overflow-hidden rounded-full bg-white/5">
                   <div
                     className="h-full bg-linear-to-r from-(--sea) to-(--sea-hover) transition-all duration-500"
                     style={{
-                      width: estimate.length
-                        ? `${Math.min(100, (estimate.reduce((s, i) => s + i.outputSize, 0) / Math.max(1, totalInputSize)) * 100)}%`
-                        : "0%",
+                      width: estimate.length ? `${estimatedPercent}%` : "0%",
                     }}
                   />
                 </div>
                 <div className="flex items-center justify-between text-[10px]">
-                  <span className="font-bold tracking-wider text-(--muted) uppercase">
-                    Savings
-                  </span>
+                  <span className="font-bold tracking-wider text-(--muted) uppercase">Savings</span>
                   <span className="font-bold text-(--sea)">
-                    {estimate.length
-                      ? formatPercent(
-                          Math.max(
-                            0,
-                            100 -
-                              (estimate.reduce((s, i) => s + i.outputSize, 0) /
-                                Math.max(1, totalInputSize)) *
-                                100
-                          )
-                        )
-                      : "0%"}
+                    {estimate.length ? formatPercent(estimatedSavings) : "0%"}
                   </span>
                 </div>
               </div>
@@ -654,6 +677,31 @@ export default function Home() {
                 </div>
 
                 <div className="grid gap-1.5">
+                  <span className="text-[10px] font-bold tracking-wider text-(--muted) uppercase">
+                    Common Sizes
+                  </span>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {commonSizePresets.map((size) => {
+                      const active = width === size.width && height === size.height;
+                      return (
+                        <button
+                          type="button"
+                          key={size.label}
+                          onClick={() => applySizePreset(size.width, size.height)}
+                          className={`rounded-lg px-2 py-1.5 text-[9px] font-bold tracking-tighter uppercase transition ${
+                            active
+                              ? "bg-(--sea) text-white shadow-md"
+                              : "bg-white/5 text-(--muted) hover:bg-white/10"
+                          }`}
+                        >
+                          {size.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="grid gap-1.5">
                   <label
                     htmlFor="fit-strategy"
                     className="text-[10px] font-bold tracking-wider text-(--muted) uppercase"
@@ -663,9 +711,7 @@ export default function Home() {
                   <select
                     id="fit-strategy"
                     value={fit}
-                    onChange={(e) =>
-                      setFit(e.target.value as "inside" | "cover" | "contain")
-                    }
+                    onChange={(e) => setFit(e.target.value as "inside" | "cover" | "contain")}
                     className="w-full rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-xs font-bold transition outline-none focus:border-(--sea)/50"
                   >
                     <option value="inside">Maintain Ratio</option>
@@ -733,10 +779,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center justify-between gap-3 rounded-lg border border-white/5 bg-white/5 px-3 py-2">
-                  <label
-                    htmlFor="bg-color"
-                    className="text-[10px] font-bold text-(--muted)"
-                  >
+                  <label htmlFor="bg-color" className="text-[10px] font-bold text-(--muted)">
                     BG Fill
                   </label>
                   <input
@@ -755,9 +798,7 @@ export default function Home() {
                     <span className="text-[9px] font-bold tracking-widest text-(--sea) uppercase">
                       Success
                     </span>
-                    <span className="text-[10px] font-bold">
-                      {formatBytes(result.size)}
-                    </span>
+                    <span className="text-[10px] font-bold">{formatBytes(result.size)}</span>
                   </div>
                   <button
                     type="button"
